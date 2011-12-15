@@ -1,0 +1,186 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * The Network Providers module.
+ */
+define('NETWORK_PROVIDERS_RATE_FIELD', 'field_rate');
+
+/**
+ * Implementation of hook_menu().
+ */
+function network_providers_menu() {
+  $items['admin/settings/network_providers'] = array(
+    'title'            => 'Network Providers',
+    'description'      => 'Set Rates for Network Providers',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('network_providers_settings'),
+    'access callback'  => 'user_access',
+    'access arguments' => array('administer network providers'),
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function network_providers_perm() {
+  return array('administer network providers');
+}
+
+/**
+ * Settings form.
+ */
+function network_providers_settings() {
+  $form['network_providers_list'] = array(
+    '#tree' => TRUE,
+  );
+
+  $providers = network_providers_list();
+
+  $form['network_providers_list']['keys'] = array(
+    '#type'          => 'textarea',
+	'#default_value' => implode("\n", array_keys($providers)),
+	'#title'         => t('Network Provider Keys'),
+	'#description'   => t('Keys used to identify various Network Providers within service messages. Place each key on a separate line.<br/><strong>NOTE:</strong> Add new keys to the bottom of the list to avoid unexpected results!'),
+	'#cols'          => 30,
+	'#rows'          => 5,
+	'#required'      => TRUE,
+  );
+
+  $form['network_providers_list']['rates'] = array(
+    '#prefix' => '<div class="container-inline"><table>',
+    '#suffix' => '</table></div>',
+  );
+  $form['network_providers_list']['rates']['#prefix'] .= '<tr class="even"><td>&nbsp;</td><th>'. t('Key') .'</th>';
+  foreach ($providers as $key => $value) {
+    $form['network_providers_list']['rates']['#prefix'] .= '<td>'. check_plain($key) .'</td>';
+  }
+  $form['network_providers_list']['rates']['#prefix'] .= '</tr>';
+
+  $form['network_providers_list']['rates']['name'] = array(
+    '#prefix' => '<tr class="odd"><th>'. t('Rate') .'</th><th>'. t('Name') .'</th>',
+	'#suffix' => '</tr>',
+  );
+
+  foreach ($providers as $key => $value) {
+	$form['network_providers_list']['rates']['name'][] = array(
+      '#prefix' => '<th>',
+      '#suffix' => '</th>',
+      '#type'          => 'textfield',
+      '#default_value' => $value['name'] ? $value['name'] : 'Network',
+      '#size'          => 10,
+      '#required'      => TRUE,
+      '#maxlength'     => 32,
+	);
+  }
+  
+  $rates = network_providers_rates();
+  foreach ($rates as $rate) {
+    $form['network_providers_list']['rates'][$rate] = array();
+	$form['network_providers_list']['rates'][$rate]['sms'] = array(
+	  '#prefix' => '<tr class="even"><td>'. $rate .'</td><td>'. t('sms') .'</td>',
+	  '#suffix' => '</tr>',
+	);
+	$form['network_providers_list']['rates'][$rate]['mms'] = array(
+	  '#prefix' => '<tr class="odd"><td>&nbsp;</td><td>'. t('mms') .'</td>',
+	  '#suffix' => '</tr>',
+	);
+	foreach ($providers as $key => $value) {
+	  $form['network_providers_list']['rates'][$rate]['sms'][] = array(
+	    '#prefix'        => '<td>',
+		'#suffix'        => '</td>',
+        '#type'          => 'textfield',
+        '#default_value' => $value[$rate]['sms'] ? $value[$rate]['sms'] : 0,
+        '#size'          => 5,
+        '#required'      => TRUE,
+        '#maxlength'     => 10,
+	  );
+	  $form['network_providers_list']['rates'][$rate]['mms'][] = array(
+	    '#prefix'        => '<td>',
+		'#suffix'        => '</td>',
+        '#type'          => 'textfield',
+        '#default_value' => $value[$rate]['mms'] ? $value[$rate]['mms'] : 0,
+        '#size'          => 5,
+        '#required'      => TRUE,
+        '#maxlength'     => 10,
+	  );
+	}
+  }
+
+  return system_settings_form($form);
+}
+
+/**
+ * Returns the list of Service Rates
+ */
+function network_providers_rates() {
+  $field = content_fields(NETWORK_PROVIDERS_RATE_FIELD);
+  $values = content_allowed_values($field);
+  return $values ? $values : array('2.00' => '2.00', '3.00' => '3.00', '4.00' => '4.00', '5.00' => '5.00');
+}
+
+/**
+ * Returns the list of Network Providers.
+ */
+function network_providers_list() {
+  return variable_get('network_providers_list', array(
+    'network-1' => array(
+	  'name' => 'Network 1',
+	  '2.00' => array('sms' => 0.25, 'mms' => 0.25),
+	  '3.00' => array('sms' => 0.25, 'mms' => 0.25),
+	  '4.00' => array('sms' => 0.25, 'mms' => 0.25),
+	  '5.00' => array('sms' => 0.25, 'mms' => 0.25),
+	),
+    'network-2' => array(
+	  'name' => 'Network 2',
+	  '2.00' => array('sms' => 0.25, 'mms' => 0.25),
+	  '3.00' => array('sms' => 0.25, 'mms' => 0.25),
+	  '4.00' => array('sms' => 0.25, 'mms' => 0.25),
+	  '5.00' => array('sms' => 0.25, 'mms' => 0.25),
+	),
+    'network-3' => array(
+	  'name' => 'Network 3',
+	  '2.00' => array('sms' => 0.25, 'mms' => 0.25),
+	  '3.00' => array('sms' => 0.25, 'mms' => 0.25),
+	  '4.00' => array('sms' => 0.25, 'mms' => 0.25),
+	  '5.00' => array('sms' => 0.25, 'mms' => 0.25),
+	),
+    'network-4' => array(
+	  'name' => 'Network 4',
+	  '2.00' => array('sms' => 0.25, 'mms' => 0.25),
+	  '3.00' => array('sms' => 0.25, 'mms' => 0.25),
+	  '4.00' => array('sms' => 0.25, 'mms' => 0.25),
+	  '5.00' => array('sms' => 0.25, 'mms' => 0.25),
+	),
+  ));
+}
+
+/**
+ * Implementation of hook_validate().
+ */
+function network_providers_settings_validate($element, &$form_state) {
+  $items = array();
+
+  $list = explode("\n", $form_state['values']['network_providers_list']['keys']);
+  $list = array_map('trim', $list);
+  $list = array_filter($list, 'strlen');
+
+  foreach ($list as $key => $value) {
+    $items[$value] = array();
+    foreach ($form_state['values']['network_providers_list']['rates'] as $rk => $rv) {
+      if ($rk == 'name') {
+        $items[$value][$rk] = check_plain($rv[$key]);
+      }
+      else {
+        $items[$value][$rk] = array(
+          'sms' => check_plain($rv['sms'][$key]),
+          'mms' => check_plain($rv['mms'][$key]),
+        );
+      }
+    }
+  }
+  form_set_value($element['network_providers_list'], $items, $form_state);
+}
+

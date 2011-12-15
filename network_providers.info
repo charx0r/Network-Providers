@@ -1,0 +1,6 @@
+; Network Providers
+name = "Network Providers"
+version = 6.x-v1.x-dev
+description = "Network Providers"
+core = 6.x
+package = "Network Messages"
